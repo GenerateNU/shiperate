@@ -1,0 +1,39 @@
+name: Deploy Backend
+on:
+  workflow_call:
+    inputs:
+      context: { type: string, default: "." }
+      dockerfile: { type: string, default: "backend.Dockerfile" }
+      image: { type: string, required: true }
+    secrets:
+      DO_TOKEN:
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Checkout Template Repo For Scripts
+        uses: actions/checkout@v5
+        with:
+          repository: GenerateNU/shiperate
+          ref: main
+          path: ./scripts
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+
+      - name: Run deploy script
+        run: python3 scripts/deploy.py
+        env:
+          IMAGE: ${{ inputs.image }}
+          CONTEXT: ${{ inputs.context }}
+          DOCKERFILE: ${{ inputs.dockerfile }}

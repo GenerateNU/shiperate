@@ -2,7 +2,7 @@ import os
 import shutil
 
 REQUIRED_DEPS = ["doctl", "docker"]
-REQUIRED_ENV_VARS = ["DIGITAL_OCEAN_TOKEN"]
+REQUIRED_ENV_VARS = ["DO_TOKEN"]
 
 
 def exists(program: str) -> bool:
@@ -23,6 +23,7 @@ def check_dependecies() -> None:
 
 def main():
     check_dependecies()
+    print("All dependencies have been verified!")
 
 
 if __name__ == "__main__":

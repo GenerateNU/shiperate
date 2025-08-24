@@ -17,7 +17,7 @@ def check_dependecies() -> None:
             raise RuntimeError(f"Missing dependency: {dependency}")
     # Check for required environment variables
     for env_var in REQUIRED_ENV_VARS:
-        if os.environ[env_var] is None:
+        if os.environ.get(env_var) is None:
             raise RuntimeError(f"Missing environment variable: {env_var}")
 
 

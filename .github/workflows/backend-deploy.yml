@@ -2,9 +2,8 @@ name: Deploy Backend
 on:
   workflow_call:
     inputs:
-      context: { type: string, default: "." }
       dockerfile: { type: string, default: "backend.Dockerfile" }
-      image: { type: string, required: true }
+      context: { type: string, default: "." }
     secrets:
       DO_TOKEN:
         required: true
@@ -31,11 +30,15 @@ jobs:
         with:
           python-version: 3.12
 
+      - name: Install Python Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install docker
+
       - name: Run deploy script
         run: |
           python3 shiperate/scripts/deploy.py
         env:
-          IMAGE: ${{ inputs.image }}
-          CONTEXT: ${{ inputs.context }}
           DOCKERFILE: ${{ inputs.dockerfile }}
+          CONTEXT: ${{ inputs.context }}
           DO_TOKEN: ${{ secrets.DO_TOKEN }}

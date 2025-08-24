@@ -19,7 +19,7 @@ jobs:
         with:
           repository: GenerateNU/shiperate
           ref: main
-          path: ./scripts
+          path: ./shiperate
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -34,7 +34,7 @@ jobs:
       - name: Run deploy script
         run: |
           ls -la
-          python3 scripts/deploy.py
+          python3 shiperate/scripts/deploy.py
         env:
           IMAGE: ${{ inputs.image }}
           CONTEXT: ${{ inputs.context }}

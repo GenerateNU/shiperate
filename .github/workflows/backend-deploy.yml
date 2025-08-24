@@ -32,7 +32,9 @@ jobs:
           python-version: 3.12
 
       - name: Run deploy script
-        run: python3 scripts/deploy.py
+        run: |
+          ls -la
+          python3 scripts/deploy.py
         env:
           IMAGE: ${{ inputs.image }}
           CONTEXT: ${{ inputs.context }}

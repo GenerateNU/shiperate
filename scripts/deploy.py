@@ -43,6 +43,7 @@ def push_to_registry(client: docker.DockerClient) -> None:
         tag=full_tag,
     )
     print(f"Successfully built the latest image: {image.id}, pushing image...")
+    # TODO: Utilize the Digital Ocean REST API to clean up images and collect garbage
     push_stream = client.images.push(repo, tag, stream=True, decode=True)
     _fail_on_push_errors(push_stream)
 
@@ -71,7 +72,7 @@ def main():
     check_dependecies()
     print("All dependencies have been verified!")
     # Build the image from the docker client
-    print("Authenticating with doctl")
+    print("Authenticating with doctl...")
     authenticate()
     client = docker.from_env()
     push_to_registry(client)

@@ -1,9 +1,10 @@
 import os
 import shutil
 import docker
+import subprocess
 
 REQUIRED_DEPS = ["doctl", "docker"]
-REQUIRED_ENV_VARS = ["DO_TOKEN", "DOCKERFILE", "CONTEXT"]
+REQUIRED_ENV_VARS = ["DO_TOKEN", "DOCKERFILE", "CONTEXT", "REPO", "TAG"]
 
 
 def exists(program: str) -> bool:
@@ -22,13 +23,47 @@ def check_dependecies() -> None:
             raise RuntimeError(f"Missing environment variable: {env_var}")
 
 
-def containerize(client: docker.DockerClient) -> None:
+def _fail_on_push_errors(stream) -> None:
+    for msg in stream:
+        # Print everything for visibility
+        print(msg)
+        if isinstance(msg, dict) and "error" in msg:
+            raise RuntimeError(f"Docker push failed: {msg['error']}")
+
+
+def push_to_registry(client: docker.DockerClient) -> None:
+    cwd = os.environ.get("CONTEXT")
+    dockerfile_path = os.environ.get("DOCKERFILE")
+    repo = os.environ["REPO"]
+    tag = os.environ["TAG"]
+    full_tag = f"{repo}:{tag}"
     image, _ = client.images.build(
-        path=os.environ.get("CONTEXT"),
-        dockerfile=os.environ.get("DOCKERFILE"),
-        tag="latest",
+        path=cwd,
+        dockerfile=dockerfile_path,
+        tag=full_tag,
     )
-    print("Successfully built the latest image: ", image)
+    print(f"Successfully built the latest image: {image.id}, pushing image...")
+    push_stream = client.images.push(repo, tag, stream=True, decode=True)
+    _fail_on_push_errors(push_stream)
+
+
+def authenticate() -> None:
+    result = subprocess.run(
+        f"doctl auth init --access-token {os.environ['DO_TOKEN']}",
+        shell=True,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    print(result.stdout)
+    result = subprocess.run(
+        "doctl registry login",
+        shell=True,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    print(result.stdout)
 
 
 def main():
@@ -36,10 +71,10 @@ def main():
     check_dependecies()
     print("All dependencies have been verified!")
     # Build the image from the docker client
+    print("Authenticating with doctl")
+    authenticate()
     client = docker.from_env()
-    containerize(client)
-
-    # Second interact with the digital ocean REST API to ensure we have routed the proper containers.
+    push_to_registry(client)
 
 
 if __name__ == "__main__":

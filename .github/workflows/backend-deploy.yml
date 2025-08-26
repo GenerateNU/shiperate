@@ -4,6 +4,8 @@ on:
     inputs:
       dockerfile: { type: string, default: "backend.Dockerfile" }
       context: { type: string, default: "." }
+      repo: { type: string }
+      tag: { type: string, default: "latest" }
     secrets:
       DO_TOKEN:
         required: true
@@ -41,4 +43,6 @@ jobs:
         env:
           DOCKERFILE: ${{ inputs.dockerfile }}
           CONTEXT: ${{ inputs.context }}
+          REPO: ${{ inputs.repo }}
+          TAG: ${{ inputs.tag }}
           DO_TOKEN: ${{ secrets.DO_TOKEN }}

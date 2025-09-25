@@ -44,6 +44,7 @@ def push_to_registry(client: docker.DockerClient) -> None:
     )
     print(f"Successfully built the latest image: {image.id}, pushing image...")
     # TODO: Utilize the Digital Ocean REST API to clean up images and collect garbage
+    # requests.post()
     push_stream = client.images.push(repo, tag, stream=True, decode=True)
     _fail_on_push_errors(push_stream)
 

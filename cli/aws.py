@@ -71,6 +71,42 @@ class _aws_client:
 
         self._wrap_error(impl)
 
+    def attach_iam_policy_for_role(self, role_name: str) -> None:
+        def impl():
+            role_iam = self._iam_client.get_role(RoleName=role_name)
+            assume_role_policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Action": "sts:AssumeRole",
+                        "Resource": f"{role_iam['Role']['Arn']}",
+                    }
+                ],
+            }
+            return self._iam_client.put_user_policy(
+                UserName=role_name,
+                PolicyName=role_name,
+                PolicyDocument=json.dumps(assume_role_policy),
+            )
+
+        self._wrap_error(impl)
+
+    def create_iam_account_with_username(self, role_name: str) -> None:
+        def impl():
+            # First get the associated role name
+            return self._iam_client.create_user(UserName=role_name)
+
+        self._wrap_error(impl)
+
+    def create_iam_user(self, role_name: str, password: str) -> None:
+        def impl():
+            return self._iam_client.create_login_profile(
+                UserName=role_name, Password=password, PasswordResetRequired=False
+            )
+
+        self._wrap_error(impl)
+
     def add_s3_bucket_permissions_to_iam(self, role_name, bucket_name) -> None:
         """Retrieves the existing role policy and adds standard s3 bucket permissions"""
 
@@ -107,7 +143,7 @@ class _aws_client:
         self._wrap_error(impl)
 
     def create_iam_role(self, role_name) -> None:
-        """Creates an IAM Role for the given team with default service access"""
+        """Creates an IAM Role for the given team with default service access as well as an associated policy"""
 
         def impl():
             role_policy = {
@@ -145,12 +181,20 @@ def Handle_AWS_Parser(aws_parser: ArgumentParser, config: ShiperateConfig) -> No
     iam_parser = sub_parser.add_parser("iam")
     iam_parser.add_argument(
         "--operation",
-        choices=["create-role", "add-s3-permissions"],
+        choices=[
+            "create-role",
+            "add-s3-permissions",
+            "create-user",
+            "create-account",
+            "attach_role_to_user_iam",
+        ],
         type=str,
     )
     iam_parser.add_argument("--role-name", choices=config.teams, type=str)
     iam_parser.add_argument("--bucket-name", type=str)
-    iam_parser.add_argument("--acc-password", type=str)
+    iam_parser.add_argument(
+        "--password", type=str, help="For authenticating or setting iam user accounts"
+    )
 
 
 def handle_s3(ctx: Namespace, aws_client: _aws_client, parser: ArgumentParser):
@@ -175,7 +219,7 @@ def handle_iam(ctx: Namespace, aws_client: _aws_client, parser: ArgumentParser):
         def create_iam_role_validator():
             role_name = ctx.role_name
             if role_name is None:
-                raise RuntimeError("Please specify a team with the --role_name flag")
+                raise RuntimeError("Please specify a name with the --role_name flag")
             return {"role_name": role_name}
 
         def add_s3_bucket_validator():
@@ -187,11 +231,32 @@ def handle_iam(ctx: Namespace, aws_client: _aws_client, parser: ArgumentParser):
                 )
             return {"role_name": role_name, "bucket_name": bucket_name}
 
+        def create_iam_account_validator():
+            role_name = ctx.role_name
+            password = ctx.password
+            if role_name is None or password is None:
+                raise RuntimeError(
+                    "Need username and password to create the IAM account"
+                )
+            return {"role_name": role_name, "password": password}
+
         iam_ops = {
             "create-role": (aws_client.create_iam_role, create_iam_role_validator),
             "add-s3-permissions": (
                 aws_client.add_s3_bucket_permissions_to_iam,
                 add_s3_bucket_validator,
+            ),
+            "attach_role_to_user_iam": (
+                aws_client.attach_iam_policy_for_role,
+                create_iam_role_validator,
+            ),
+            "create-user": (
+                aws_client.create_iam_account_with_username,
+                create_iam_role_validator,
+            ),
+            "create-account": (
+                aws_client.create_iam_user,
+                create_iam_account_validator,
             ),
         }
         op = ctx.operation

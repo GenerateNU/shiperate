@@ -107,12 +107,31 @@ class _aws_client:
 
         self._wrap_error(impl)
 
+    def update_role_policy_with_user(self, role_name: str) -> None:
+        def impl():
+            user_iam = self._iam_client.get_user(UserName=role_name)
+            trust_policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {"AWS": f"{user_iam['User']['Arn']}"},
+                        "Action": "sts:AssumeRole",
+                    }
+                ],
+            }
+            return self._iam_client.update_assume_role_policy(
+                RoleName=role_name, PolicyDocument=json.dumps(trust_policy)
+            )
+
+        self._wrap_error(impl)
+
     def add_s3_bucket_permissions_to_iam(self, role_name, bucket_name) -> None:
         """Retrieves the existing role policy and adds standard s3 bucket permissions"""
 
         def impl():
             res = self._s3_client.head_bucket(Bucket=bucket_name)
-            if res["HTTPStatusCode"] != "200":
+            if res["ResponseMetadata"]["HTTPStatusCode"] != 200:
                 raise RuntimeError(
                     f"{bucket_name} does not exist. Or you do not have permission for this bucket"
                 )
@@ -120,24 +139,31 @@ class _aws_client:
                 "Version": "2012-10-17",
                 "Statement": [
                     {
-                        "Sid": "ListObjectsInBucket",
+                        "Sid": "AllowListingBucketsInConsole",
                         "Effect": "Allow",
-                        "Action": ["s3:ListBucket"],
-                        "Resource": [f"arn:aws:s3:::{bucket_name}"],
+                        "Action": ["s3:ListAllMyBuckets", "s3:GetBucketLocation"],
+                        "Resource": "*",
                     },
                     {
-                        "Sid": "AllObjectActions",
                         "Effect": "Allow",
-                        "Action": "s3:*Object",
-                        "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+                        "Action": "s3:*",
+                        "Resource": [
+                            f"arn:aws:s3:::{bucket_name}",
+                            f"arn:aws:s3:::{bucket_name}/*",
+                        ],
                     },
                 ],
             }
+            policy_name = f"{bucket_name}_s3_policy"
 
-            return self._iam_client.put_role_policy(
-                RoleName=role_name,
-                PolicyName=f"{role_name}_{bucket_name}_s3_policy",
-                PolicyDocument=json.dumps(role_policy),
+            policy_res = self._iam_client.create_policy(
+                PolicyName=policy_name, PolicyDocument=json.dumps(role_policy)
+            )
+            if policy_res["ResponseMetadata"]["HTTPStatusCode"] != 200:
+                raise RuntimeError("Policy does not exist.")
+
+            return self._iam_client.attach_user_policy(
+                UserName=role_name, PolicyArn=policy_res["Policy"]["Arn"]
             )
 
         self._wrap_error(impl)
@@ -187,6 +213,7 @@ def Handle_AWS_Parser(aws_parser: ArgumentParser, config: ShiperateConfig) -> No
             "create-user",
             "create-account",
             "attach_role_to_user_iam",
+            "update-role-policy",
         ],
         type=str,
     )
@@ -242,6 +269,10 @@ def handle_iam(ctx: Namespace, aws_client: _aws_client, parser: ArgumentParser):
 
         iam_ops = {
             "create-role": (aws_client.create_iam_role, create_iam_role_validator),
+            "update-role-policy": (
+                aws_client.update_role_policy_with_user,
+                create_iam_role_validator,
+            ),
             "add-s3-permissions": (
                 aws_client.add_s3_bucket_permissions_to_iam,
                 add_s3_bucket_validator,

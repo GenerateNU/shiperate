@@ -61,4 +61,13 @@ create_iam_account() {
   python3 cli.py aws iam --operation create-account --role-name $user_name --password $password
 }
 
+update_role_policy_with_user() {
+  if [ "$#" -ne 1 ]; then
+    echo "Error: Expected exactly 1 arguments, got $#"
+    return 1
+  fi
+  local user_name="$1"
+  python3 cli.py aws iam --operation update-role-policy --role-name $user_name
+}
+
 "$@"

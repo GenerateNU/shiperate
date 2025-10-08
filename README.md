@@ -35,3 +35,14 @@ $ python3 cli.py aws iam --operation add-s3-permissions --role-name {role_name} 
 ```
 
 4. Optional create an IAM login for the TLs for console access
+
+
+## using scripts
+source cli/aliases.sh
+cd cli/
+
+1. Create user (call create_iam_account and then create_iam_user)
+
+2. Create bucket (call create_bucket)
+
+3. Attach S3 permissions (call add_s3_permissions)

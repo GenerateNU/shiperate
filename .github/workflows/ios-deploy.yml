@@ -1,0 +1,35 @@
+name: Deploy EAS Build
+
+on:
+  workflow_call:
+    secrets:
+      EXPO_TOKEN:
+        required: true
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+
+jobs:
+  build:
+    name: Install and Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+
+      - name: Install dependencies
+        run: cd frontend && npm install
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build on EAS and Auto-Submit to App Store if successful
+        run: cd frontend && eas build --platform ios --non-interactive --no-wait --profile production --auto-submit

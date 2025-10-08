@@ -2,12 +2,18 @@ name: Deploy EAS Build
 
 on:
   workflow_call:
+    inputs:
+      env:
+        description: "Runtime environment, either bun or node"
+        required: true
+        type: string
     secrets:
       EXPO_TOKEN:
         required: true
   push:
     branches:
       - main
+      - ios-deploy
     paths:
       - "frontend/**"
 
@@ -22,8 +28,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v5
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Install dependencies
-        run: cd frontend && npm install
+        run: cd frontend && ${{ inputs.env == 'bun' && 'bun install' || 'npm install' }}
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8

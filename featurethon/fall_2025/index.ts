@@ -10,6 +10,8 @@ type MappingType = Map<string, {
   headCommitMessage: string
 }>
 
+const MEME_API = "https://meme-api.com/gimme/ProgrammerHumor"
+
 const ADJECTIVES = [
   "🤪 Goofy Goober",
   "👺 Sherm Goblin",
@@ -46,6 +48,29 @@ const DESCRIPTORS = [
   "refactored the entire codebase and",
   "solved P=NP while also",
   "transcended technical debt and"
+]
+
+const PAST_TENSE_VERBS = [
+  "mystified",
+  "bamboozled",
+  "flabbergasted",
+  "bewildered",
+  "stunned",
+  "amazed",
+  "astounded",
+  "shocked",
+  "impressed",
+  "gobsmacked",
+  "devastated",
+  "heartbroken",
+  "crushed",
+  "disappointed",
+  "dejected",
+  "dismayed",
+  "disheartened",
+  "crestfallen",
+  "despondent",
+  "melancholy"
 ]
 
 const VALID_REPOS = ["prisere", "shiperate", "cinecircle", "specialstandard",
@@ -111,7 +136,8 @@ function buildExcitingSlackMessage(contributors: MappingType): string[] {
     const info = contributors.get(contributorName)!
     const adjectifiedName = randomChoice(ADJECTIVES) + " " + contributorName
     const descriptor = randomChoice(DESCRIPTORS)
-    const message = `${adjectifiedName} ${descriptor} commited ${info.numberOfCommits} commit(s) they have said ${info.messages.join(". ")}`
+    const pastTenseVerb = randomChoice(PAST_TENSE_VERBS)
+    const message = `${adjectifiedName} ${descriptor} commited ${info.numberOfCommits} commit(s), they have said "${info.messages.join(". ")}". The ${info.teamName} team are absolutely ${pastTenseVerb} that they did all that.`
     messages.push(message)
   }
   return messages
@@ -124,13 +150,16 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
     const contributors = processFeaturethon(json)
     const msgs = buildExcitingSlackMessage(contributors)
     const slackMessage = msgs.join("\n")
+    const random_meme_res = await fetch(MEME_API)
+    const random_meme_json = await random_meme_res.json() as any
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        text: slackMessage
+        text: slackMessage,
+        image_url: random_meme_json.url,
       })
     };
     await fetch(config.slackWebhook, requestOptions)

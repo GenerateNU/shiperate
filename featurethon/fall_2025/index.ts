@@ -162,6 +162,13 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
         text: slackMessage,
         blocks: [
           {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: slackMessage
+            }
+          },
+          {
             type: 'image',
             image_url: random_meme_json.url,
             alt_text: random_meme_json.title || 'Programmer meme'

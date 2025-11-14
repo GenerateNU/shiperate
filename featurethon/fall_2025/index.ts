@@ -93,7 +93,8 @@ function buildExcitingSlackMessage(contributors: MappingType): string {
     const info = contributors.get(contributorName)!
     const adjectifiedName = randomChoice(ADJECTIVES) + " " + contributorName
     const descriptor = randomChoice(DESCRIPTORS)
-    console.log(adjectifiedName + " " + descriptor + " " + "commited" + " " + info.numberOfCommits)
+    console.log(adjectifiedName + " " + descriptor
+      + " " + "commited" + " " + info.numberOfCommits + " they said" + info.headCommitMessage)
   }
 }
 

@@ -11,6 +11,7 @@ type MappingType = Map<string, {
 }>
 
 const ADJECTIVES = [
+  "Goofy Goober",
   "Sherm Goblin",
   "Sherm Warrior",
   "Dragon Warrior",
@@ -19,7 +20,24 @@ const ADJECTIVES = [
   "Mountain Moving",
   "Slack Lurker",
   "LinkedIn Doom Scroller",
-  "Feature Producer"
+  "Feature Producer",
+  "Merge Conflict Resolver",
+  "Terminal Sage",
+  "Bug Whisperer",
+  "Stack Overflow Oracle",
+  "Commit History Archeologist",
+  "Deploy Day Hero",
+  "Regex Sorcerer",
+  "Coffee-Driven Developer",
+  "Vim Escapee",
+  "Dark Mode Enthusiast",
+  "Tab vs Space Diplomat",
+  "Database Necromancer",
+  "API Alchemist",
+  "Scrum Master Survivor",
+  "Production Firefighter",
+  "Documentation Dreamer",
+  "Rubber Duck Listener"
 ]
 
 const DESCRIPTORS = [
@@ -29,6 +47,20 @@ const DESCRIPTORS = [
   "did not hold back and",
   "is crushing it and",
   "achieved nirvana and",
+  "cooked with gas and",
+  "ascended to another plane and",
+  "absolutely shipped it and",
+  "entered flow state and",
+  "channeled raw chaos and",
+  "touched grass then immediately",
+  "deleted production accidentally but still",
+  "rage-coded at 3am and",
+  "ignored all warnings and",
+  "merged directly to main and",
+  "rewrote everything in Rust and",
+  "refactored the entire codebase and",
+  "solved P=NP while also",
+  "transcended technical debt and"
 ]
 
 const VALID_REPOS = ["prisere", "shiperate", "cinecircle", "specialstandard",
@@ -94,21 +126,20 @@ function buildExcitingSlackMessage(contributors: MappingType): string[] {
     const info = contributors.get(contributorName)!
     const adjectifiedName = randomChoice(ADJECTIVES) + " " + contributorName
     const descriptor = randomChoice(DESCRIPTORS)
-    const message = `${adjectifiedName} ${descriptor} commited ${info.numberOfCommits} 
-          commit(s) they said ${info.headCommitMessage}`
+    const message = `${adjectifiedName} ${descriptor} commited ${info.numberOfCommits} commit(s) they have said ${info.messages.join(". ")}`
     messages.push(message)
   }
   return messages
 }
 
+
 async function handleIncomingGithubWebhook(req: Request): Promise<Response> {
   const json: any = await req.json()
-  console.log(validate_github_repos(json))
   if (validate_github_repos(json)) {
-    await Bun.write("output.txt", JSON.stringify(json, null, 2));
     const contributors = processFeaturethon(json)
     const msgs = buildExcitingSlackMessage(contributors)
-    msgs.forEach((msg) => { console.log(msg) })
+    const slackMessage = msgs.join("\n")
+    console.log(slackMessage)
   }
   return new Response("Successfully Hit Response")
 }
@@ -130,7 +161,8 @@ function main(config: Record<string, string | undefined>) {
 dotenv.config()
 
 const config = {
-  port: process.env.SERVER_PORT
+  port: process.env.SERVER_PORT,
+  slackWebhook: process.env.SLACK_WEBHOOK
 }
 
 main(config)

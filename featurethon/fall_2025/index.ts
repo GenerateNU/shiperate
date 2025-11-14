@@ -160,7 +160,11 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
       },
       body: JSON.stringify({
         text: slackMessage,
-        image_url: random_meme_json.url,
+        attachments: [
+          {
+            "image_url": random_meme_json.url
+          }
+        ]
       })
     };
     await fetch(config.slackWebhook, requestOptions)

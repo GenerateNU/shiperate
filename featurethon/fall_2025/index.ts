@@ -7,6 +7,7 @@ type MappingType = Map<string, {
   modifiedFiles: Set<string>
   numberOfCommits: number
   teamName: string
+  headCommitMessage: string
 }>
 
 const ADJECTIVES = [
@@ -27,6 +28,7 @@ const DESCRIPTORS = [
   "are truly 10000x engineers and",
   "did not hold back and",
   "are crushing it and",
+  "achieved nirvana and",
 ]
 
 const VALID_REPOS = ["prisere", "shiperate", "cinecircle", "specialstandard",
@@ -54,14 +56,7 @@ function validate_github_repos(json: any) {
 function processFeaturethon(json: any): MappingType {
   const commits: any[] = json.commits
   // Create a mapping of a name
-  const mappings = new Map<string, {
-    messages: string[],
-    addedFiles: Set<string>
-    removedFiles: Set<string>
-    modifiedFiles: Set<string>
-    numberOfCommits: number
-    teamName: string
-  }>()
+  const mappings: MappingType = new Map()
 
   for (const commit of commits) {
     const author = commit.author
@@ -85,7 +80,8 @@ function processFeaturethon(json: any): MappingType {
         removedFiles: new Set<string>(removedFiles),
         modifiedFiles: new Set<string>(modifiedFiles),
         numberOfCommits: 1,
-        teamName: REPO_TEAM_MAPPINGS[json.repository.name]!
+        teamName: REPO_TEAM_MAPPINGS[json.repository.name]!,
+        headCommitMessage: json.head_commit.message!
       })
     }
   }
@@ -93,14 +89,12 @@ function processFeaturethon(json: any): MappingType {
 }
 
 function buildExcitingSlackMessage(contributors: MappingType): string {
-  const names = Array.from(contributors.keys())
-  const snazzyNames = names.map((name) => {
-    const adj = randomChoice(ADJECTIVES)
-    return adj + " " + name
-  })
-  const firstPart = snazzyNames.join(", ")
-  const descriptor = randomChoice(DESCRIPTORS)
-  console.log(firstPart + descriptor)
+  for (const contributorName in contributors) {
+    const info = contributors.get(contributorName)!
+    const adjectifiedName = randomChoice(ADJECTIVES) + " " + contributorName
+    const descriptor = randomChoice(DESCRIPTORS)
+    console.log(adjectifiedName + " " + descriptor + " " + "commited" + " " + info.numberOfCommits)
+  }
 }
 
 async function handleIncomingGithubWebhook(req: Request): Promise<Response> {

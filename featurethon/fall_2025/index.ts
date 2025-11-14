@@ -103,9 +103,9 @@ function buildExcitingSlackMessage(contributors: MappingType): string[] {
 
 async function handleIncomingGithubWebhook(req: Request): Promise<Response> {
   const json: any = await req.json()
-  await Bun.write("output.txt", JSON.stringify(json, null, 2));
   console.log(validate_github_repos(json))
   if (validate_github_repos(json)) {
+    await Bun.write("output.txt", JSON.stringify(json, null, 2));
     const contributors = processFeaturethon(json)
     const msgs = buildExcitingSlackMessage(contributors)
     msgs.forEach((msg) => { console.log(msg) })

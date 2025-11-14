@@ -9,6 +9,26 @@ type MappingType = Map<string, {
   teamName: string
 }>
 
+const ADJECTIVES = [
+  "Sherm Goblin",
+  "Sherm Warrior",
+  "Dragon Warrior",
+  "Sherm Dweller",
+  "Github Wizard",
+  "Mountain Moving",
+  "Slack Lurker",
+  "LinkedIn Doom Scroller",
+  "Feature Producer"
+]
+
+const DESCRIPTORS = [
+  "went absolutely crazy and",
+  "are clinically insane and",
+  "are truly 10000x engineers and",
+  "did not hold back and",
+  "are crushing it and",
+]
+
 const VALID_REPOS = ["prisere", "shiperate", "cinecircle", "specialstandard",
   "karp-backend", "karp-frontend-react", "karp-frontend-react-native"]
 
@@ -19,13 +39,19 @@ const REPO_TEAM_MAPPINGS: Record<string, string> = {
   "karp-backend": "Karp", "karp-frontend-react": "Karp", "karp-frontend-react-native": "Karp"
 }
 
+function randomChoice<T>(array: T[]): T {
+  const val = array[Math.floor(Math.random() * array.length)];
+  if (val === undefined) throw new Error("What even happened")
+  return val
+}
+
 function validate_github_repos(json: any) {
   const repository_name = json.repository.name
   const branch_name: string = json.ref.split("/").slice(2).join("/");
   return VALID_REPOS.includes(repository_name) && branch_name.startsWith(TARGET_BRANCH)
 }
 
-function process_featurethon(json: any): MappingType {
+function processFeaturethon(json: any): MappingType {
   const commits: any[] = json.commits
   // Create a mapping of a name
   const mappings = new Map<string, {
@@ -66,12 +92,23 @@ function process_featurethon(json: any): MappingType {
   return mappings
 }
 
+function buildExcitingSlackMessage(contributors: MappingType): string {
+  const names = Array.from(contributors.keys())
+  const snazzyNames = names.map((name) => {
+    const adj = randomChoice(ADJECTIVES)
+    return adj + " " + name
+  })
+  const firstPart = snazzyNames.join(", ")
+  const descriptor = randomChoice(DESCRIPTORS)
+  console.log(firstPart + descriptor)
+}
+
 async function handleIncomingGithubWebhook(req: Request): Promise<Response> {
   const json: any = await req.json()
   await Bun.write("output.txt", JSON.stringify(json, null, 2));
   if (validate_github_repos(json)) {
-    const contributors = process_featurethon(json)
-    console.log(contributors)
+    const contributors = processFeaturethon(json)
+    const msg = buildExcitingSlackMessage(contributors)
   }
   return new Response("Successfully Hit Response")
 }

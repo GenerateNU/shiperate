@@ -3,16 +3,19 @@ import * as dotenv from "dotenv"
 const VALID_REPOS = ["prisere", "shiperate", "cinecircle", "specialstandard",
   "karp-backend", "karp-frontend-react", "karp-frontend-react-native"]
 
-function validate_github_repos(repository: any) {
-  return VALID_REPOS.includes(repository.name)
+const TARGET_BRANCH = "featurethon"
+
+function validate_github_repos(json: any) {
+  const repository_name = json.repository.name
+  const branch_name: string = json.ref.split("/").slice(2).join("/");
+  return VALID_REPOS.includes(repository_name) && branch_name.startsWith(TARGET_BRANCH)
 }
 
 async function handleIncomingGithubWebhook(req: Request): Promise<Response> {
   const json: any = await req.json()
-  const respository = json.repository
-  await Bun.write("output.txt", JSON.stringify(respository));
-  if (validate_github_repos(respository)) {
-
+  await Bun.write("output.txt", JSON.stringify(json));
+  if (validate_github_repos(json)) {
+    console.log("Should be valid")
   }
   return new Response("Successfully Hit Response")
 }

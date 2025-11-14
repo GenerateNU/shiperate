@@ -160,9 +160,10 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
       },
       body: JSON.stringify({
         text: slackMessage,
-        attachments: [
+        blocks: [
           {
-            "image_url": random_meme_json.url
+            type: 'image',
+            image_url: random_meme_json.url,
           }
         ]
       })

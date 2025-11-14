@@ -5,7 +5,7 @@ FROM oven/bun:1
 WORKDIR /home/bun/app
 
 # Copy package.json and bun.lockb (if present) to leverage Docker's layer caching
-COPY package.json bun.lockb ./
+COPY package.json  ./
 
 # Install dependencies using bun install
 RUN bun install --frozen-lockfile
@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Define the command to run your Bun application when the container starts
-CMD ["bun", "run", "start"]
+CMD ["bun", "run", "index.ts"]

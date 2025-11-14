@@ -24,10 +24,10 @@ const ADJECTIVES = [
 
 const DESCRIPTORS = [
   "went absolutely crazy and",
-  "are clinically insane and",
-  "are truly 10000x engineers and",
+  "went clinically insane and",
+  "is truly 10000x engineers and",
   "did not hold back and",
-  "are crushing it and",
+  "is crushing it and",
   "achieved nirvana and",
 ]
 
@@ -88,22 +88,27 @@ function processFeaturethon(json: any): MappingType {
   return mappings
 }
 
-function buildExcitingSlackMessage(contributors: MappingType): string {
-  for (const contributorName in contributors) {
+function buildExcitingSlackMessage(contributors: MappingType): string[] {
+  const messages: string[] = []
+  for (const contributorName of contributors.keys()) {
     const info = contributors.get(contributorName)!
     const adjectifiedName = randomChoice(ADJECTIVES) + " " + contributorName
     const descriptor = randomChoice(DESCRIPTORS)
-    console.log(adjectifiedName + " " + descriptor
-      + " " + "commited" + " " + info.numberOfCommits + " they said" + info.headCommitMessage)
+    const message = `${adjectifiedName} ${descriptor} commited ${info.numberOfCommits} 
+          commit(s) they said ${info.headCommitMessage}`
+    messages.push(message)
   }
+  return messages
 }
 
 async function handleIncomingGithubWebhook(req: Request): Promise<Response> {
   const json: any = await req.json()
   await Bun.write("output.txt", JSON.stringify(json, null, 2));
+  console.log(validate_github_repos(json))
   if (validate_github_repos(json)) {
     const contributors = processFeaturethon(json)
-    const msg = buildExcitingSlackMessage(contributors)
+    const msgs = buildExcitingSlackMessage(contributors)
+    msgs.forEach((msg) => { console.log(msg) })
   }
   return new Response("Successfully Hit Response")
 }

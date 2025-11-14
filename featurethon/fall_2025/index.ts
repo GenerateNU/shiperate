@@ -152,6 +152,7 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
     const slackMessage = msgs.join("\n")
     const random_meme_res = await fetch(MEME_API)
     const random_meme_json = await random_meme_res.json() as any
+    console.log(random_meme_json)
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: {

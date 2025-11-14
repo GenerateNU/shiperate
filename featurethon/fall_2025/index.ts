@@ -133,13 +133,22 @@ function buildExcitingSlackMessage(contributors: MappingType): string[] {
 }
 
 
-async function handleIncomingGithubWebhook(req: Request): Promise<Response> {
+async function handleIncomingGithubWebhook(req: Request, config: any): Promise<Response> {
   const json: any = await req.json()
   if (validate_github_repos(json)) {
     const contributors = processFeaturethon(json)
     const msgs = buildExcitingSlackMessage(contributors)
     const slackMessage = msgs.join("\n")
-    console.log(slackMessage)
+    const requestOptions: RequestInit = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: slackMessage
+      })
+    };
+    await fetch(config.slackWebhook, requestOptions)
   }
   return new Response("Successfully Hit Response")
 }
@@ -149,7 +158,7 @@ function main(config: Record<string, string | undefined>) {
     throw new Error("No Port Found")
   }
   const routes = {
-    "/api/webhooks/github": handleIncomingGithubWebhook
+    "/api/webhooks/github": async (req: Request) => { return await handleIncomingGithubWebhook(req, config) }
   }
   const server = Bun.serve({
     port: parseInt(config.port), routes: routes,

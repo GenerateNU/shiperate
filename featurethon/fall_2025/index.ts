@@ -164,6 +164,7 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
           {
             type: 'image',
             image_url: random_meme_json.url,
+            alt_text: random_meme_json.title || 'Programmer meme'
           }
         ]
       })

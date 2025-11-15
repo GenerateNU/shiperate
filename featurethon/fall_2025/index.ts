@@ -145,6 +145,9 @@ function buildExcitingSlackMessage(contributors: MappingType): string[] {
 
 
 async function handleIncomingGithubWebhook(req: Request, config: any): Promise<Response> {
+  if (req.method === 'GET') {
+    return new Response(`Ayo don't be here`, { status: 200 });
+  }
   const json: any = await req.json()
   if (validate_github_repos(json)) {
     const contributors = processFeaturethon(json)
@@ -152,7 +155,6 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
     const slackMessage = msgs.join("\n")
     const random_meme_res = await fetch(MEME_API)
     const random_meme_json = await random_meme_res.json() as any
-    console.log(random_meme_json)
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: {
@@ -177,6 +179,17 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
       })
     };
     await fetch(config.slackWebhook, requestOptions)
+    await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${config.oauthToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        channel: config.memberID,
+        text: contributors
+      })
+    });
   }
   return new Response("Successfully Hit Response")
 }
@@ -199,7 +212,9 @@ dotenv.config()
 
 const config = {
   port: process.env.SERVER_PORT,
-  slackWebhook: process.env.SLACK_WEBHOOK
+  slackWebhook: process.env.SLACK_WEBHOOK,
+  memberID: process.env.SLACK_MEMBER_ID,
+  oauthToken: process.env.SLACK_OAUTH_BOT
 }
 
 main(config)

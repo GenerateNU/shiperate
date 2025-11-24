@@ -8,6 +8,7 @@ type MappingType = Map<string, {
   numberOfCommits: number
   teamName: string
   headCommitMessage: string
+  adam?: string
 }>
 
 const MEME_API = "https://meme-api.com/gimme/ProgrammerHumor"
@@ -76,7 +77,7 @@ const PAST_TENSE_VERBS = [
 const VALID_REPOS = ["prisere", "shiperate", "cinecircle", "specialstandard",
   "karp-backend", "karp-frontend-react", "karp-frontend-react-native"]
 
-const TARGET_BRANCH = "featurethon"
+const TARGET_BRANCH = "main"
 
 const REPO_TEAM_MAPPINGS: Record<string, string> = {
   "prisere": "Prisere", "shiperate": "Chiefs", "cinecircle": "CineCircle", "specialstandard": "Special Standard",
@@ -95,6 +96,8 @@ function validate_github_repos(json: any) {
   return VALID_REPOS.includes(repository_name) && branch_name.startsWith(TARGET_BRANCH)
 }
 
+const TROLL_MESSAGES = ["Brochacho Adam gotta chill", "Juicy Adam", "Big Adam"]
+
 function processFeaturethon(json: any): MappingType {
   const commits: any[] = json.commits
   // Create a mapping of a name
@@ -107,7 +110,6 @@ function processFeaturethon(json: any): MappingType {
     const addedFiles: string[] = commit.added
     const removedFiles: string[] = commit.removed
     const modifiedFiles: string[] = commit.modified
-
     if (mappings.has(name)) {
       const info = mappings.get(name)!
       info.messages.push(message)
@@ -123,7 +125,8 @@ function processFeaturethon(json: any): MappingType {
         modifiedFiles: new Set<string>(modifiedFiles),
         numberOfCommits: 1,
         teamName: REPO_TEAM_MAPPINGS[json.repository.name]!,
-        headCommitMessage: json.head_commit.message!
+        headCommitMessage: json.head_commit.message!,
+        adam: name === "Adam Ma" ? randomChoice(TROLL_MESSAGES) : undefined
       })
     }
   }
@@ -139,6 +142,10 @@ function buildExcitingSlackMessage(contributors: MappingType): string[] {
     const pastTenseVerb = randomChoice(PAST_TENSE_VERBS)
     const message = `${adjectifiedName} ${descriptor} commited ${info.numberOfCommits} commit(s), they have said "${info.messages.join(". ")}". The ${info.teamName} team are absolutely ${pastTenseVerb} that they did all that.`
     messages.push(message)
+  }
+  if (contributors.has("Adam Ma")) {
+    const adam = contributors.get("Adam Ma")!
+    messages.push(adam.adam!)
   }
   return messages
 }
@@ -179,17 +186,6 @@ async function handleIncomingGithubWebhook(req: Request, config: any): Promise<R
       })
     };
     await fetch(config.slackWebhook, requestOptions)
-    await fetch("https://slack.com/api/chat.postMessage", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${config.oauthToken}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        channel: config.memberID,
-        text: contributors
-      })
-    });
   }
   return new Response("Successfully Hit Response")
 }

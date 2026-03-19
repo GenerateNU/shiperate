@@ -17,7 +17,6 @@ on:
         required: true
   push:
     branches:
-      - main
       - ios-deploy
     paths:
       - "frontend/**"

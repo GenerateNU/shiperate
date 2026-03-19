@@ -7,6 +7,11 @@ on:
         description: "Runtime environment, either bun or node"
         required: true
         type: string
+      build-directory:
+        description: "Path to the frontend project directory"
+        required: false
+        default: "frontend"
+        type: string
     secrets:
       EXPO_TOKEN:
         required: true
@@ -32,7 +37,8 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: cd frontend && ${{ inputs.env == 'bun' && 'bun install' || 'npm install' }}
+        working-directory: ${{ inputs.build-directory }}
+        run: ${{ inputs.env == 'bun' && 'bun install' || 'npm install' }}
 
       - name: Setup Expo and EAS
         uses: expo/expo-github-action@v8
@@ -41,4 +47,5 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build on EAS and Auto-Submit to App Store if successful
-        run: cd frontend && eas build --platform ios --non-interactive --no-wait --profile production --auto-submit
+        working-directory: ${{ inputs.build-directory }}
+        run: eas build --platform ios --non-interactive --no-wait --profile production --auto-submit

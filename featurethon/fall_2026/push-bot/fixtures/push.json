@@ -1,0 +1,32 @@
+{
+  "ref": "refs/heads/featurethon",
+  "forced": false,
+  "compare": "https://github.com/example/tomoji/compare/abc123...def456",
+  "repository": { "name": "tomoji" },
+  "commits": [
+    {
+      "message": "fix the emoji picker crashing on tap!!",
+      "timestamp": "2026-11-14T02:41:00-05:00",
+      "author": { "name": "Sample Dev", "username": "sampledev" },
+      "added": ["src/picker/__tests__/picker.test.ts"],
+      "removed": [],
+      "modified": ["src/picker/Picker.tsx", "package.json"]
+    },
+    {
+      "message": "wip",
+      "timestamp": "2026-11-14T02:58:00-05:00",
+      "author": { "name": "Sample Dev", "username": "sampledev" },
+      "added": [],
+      "removed": ["src/old/LegacyPicker.tsx"],
+      "modified": ["README.md"]
+    },
+    {
+      "message": "Merge pull request #12 from example/tomoji/feature-onboarding\n\nOnboarding flow 🎉",
+      "timestamp": "2026-11-14T07:15:00-05:00",
+      "author": { "name": "Another Dev", "username": "anotherdev" },
+      "added": ["src/onboarding/Welcome.tsx", "src/onboarding/Steps.tsx"],
+      "removed": [],
+      "modified": ["src/App.tsx"]
+    }
+  ]
+}

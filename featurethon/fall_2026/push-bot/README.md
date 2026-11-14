@@ -46,14 +46,16 @@ Caddy at `https://featurethon-push-bot.boutline-preview.generatenu.com`. Secrets
 there (`SLACK_WEBHOOK`, `GITHUB_WEBHOOK_SECRET`, `PUSH_BOT_DOMAIN`). The scoreboard persists in the
 `featurethon-push-bot_scoreboard` volume.
 
-To redeploy after a change, from this directory:
+To redeploy, commit first (this ships the committed code, not your working tree), then from the repo root:
 
 ```bash
-rsync -a --delete --exclude node_modules --exclude .env --exclude data --exclude docker-compose.yml \
-  ./ deploy@159.65.222.225:featurethon-push-bot/app/
-scp docker-compose.yml deploy@159.65.222.225:featurethon-push-bot/
-ssh deploy@159.65.222.225 'cd ~/featurethon-push-bot && docker compose --env-file bot.env up -d --build'
+git archive HEAD:featurethon/fall_2026/push-bot | ssh deploy@159.65.222.225 'set -e
+  cd ~/featurethon-push-bot && rm -rf app.new && mkdir app.new && tar -x -C app.new
+  rm -rf app && mv app.new app && cp app/docker-compose.yml .
+  docker compose --env-file bot.env up -d --build'
 ```
+
+(Avoid macOS's built-in `rsync` here: it mangles relative remote paths.)
 
 Logs: `ssh deploy@159.65.222.225 docker logs --tail 100 featurethon-push-bot`
 

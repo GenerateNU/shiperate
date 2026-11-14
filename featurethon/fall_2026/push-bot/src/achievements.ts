@@ -14,7 +14,6 @@ const RULES: Rule[] = [
   (c) => c.hours.some((h) => h >= 5 && h < 8) ? { emoji: "🐓", label: "Early Bird" } : undefined,
   (c) => c.removed.size > 0 && c.removed.size >= c.added.size ? { emoji: "🧹", label: "Marie Kondo" } : undefined,
   (c) => c.modified.size >= 20 ? { emoji: "🌪️", label: "Blast Radius" } : undefined,
-  (c) => [...c.added, ...c.modified].some((f) => /(^|\/)(test|tests|__tests__)\/|\.(test|spec)\.[jt]sx?$|_test\.go$/.test(f)) ? { emoji: "🧪", label: "Actually Wrote Tests" } : undefined,
   (c) => firstLines(c).some((m) => m.length > 0 && m.length <= 4) ? { emoji: "🤐", label: "Person of Few Words" } : undefined,
   (c) => firstLines(c).some((m) => m.length >= 100) ? { emoji: "📖", label: "Novelist" } : undefined,
 ]

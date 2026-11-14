@@ -61,21 +61,10 @@ export const VERBS_FOR_COMMITS = [
   "dropped", "lovingly hand-crafted", "slammed down", "deployed",
 ] as const
 
-// Each template takes the pieces and returns a line of mrkdwn.
-export type LineParts = {
-  who: string
-  commits: number
-  team: string
-  quote: string
+// One line per contributor: *TITLE Name* DESCRIPTOR VERB N commits: "message"
+export function contributorLine(who: string, commits: number, quote: string): string {
+  return `*${pick(TITLES)} ${who}* ${pick(DESCRIPTORS)} ${pick(VERBS_FOR_COMMITS)} ${plural(commits, "commit")}: ${quote}`
 }
-
-export const TEMPLATES: ((p: LineParts) => string)[] = [
-  (p) => `*${pick(TITLES)} ${p.who}* ${pick(DESCRIPTORS)} ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}: ${p.quote}.`,
-  (p) => `Breaking news from the ${p.team} camp: *${p.who}* (${pick(TITLES)}) just ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}. Witnesses report: ${p.quote}.`,
-  (p) => `📜 _And lo, *${p.who}* ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")} unto ${p.team}, proclaiming_ ${p.quote}.`,
-  (p) => `🎙️ Sources close to *${p.who}* confirm they ${pick(DESCRIPTORS)} ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}. Statement: ${p.quote}.`,
-  (p) => `🍂 Fall forecast for ${p.team}: ${plural(p.commits, "commit")} incoming from *${p.who}*, with a high chance of ${p.quote}.`,
-]
 
 export const FIRST_BLOOD = [
   "🩸 *FIRST BLOOD!* The featurethon has officially begun.",

@@ -1,7 +1,7 @@
 # fall_2026 push-bot 🍂
 
 Slack bot that listens for GitHub push webhooks on the `featurethon` branch of the featurethon repos and posts
-to Slack with rare achievement badges, a running team scoreboard, and a random bonus (meme, joke,
+to Slack with rare achievement badges, commit milestones, and a random bonus (meme, joke,
 dad joke, useless fact, advice, dog, or http.cat).
 
 | Repo | Team |
@@ -61,7 +61,7 @@ Logs: `ssh deploy@159.65.222.225 docker logs --tail 100 featurethon-push-bot`
 
 ## Where to add content
 
-- `src/flavor.ts` — titles, descriptors, message templates, milestone lines
+- `src/flavor.ts` — titles, descriptors, verbs, milestone lines
 - `src/achievements.ts` — badge rules (each is a function: contributor → badge or nothing)
 - `src/content.ts` — bonus content sources and their weights
 - `src/teams.ts` — repo → team mapping

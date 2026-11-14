@@ -2,12 +2,11 @@
 
 import { badgesFor } from "./achievements"
 import type { Bonus } from "./content"
-import { FIRST_BLOOD, MILESTONE_LINES, TEMPLATES, pick, plural } from "./flavor"
+import { FIRST_BLOOD, MILESTONE_LINES, contributorLine, pick, plural } from "./flavor"
 import type { PushSummary } from "./push"
 import type { RecordResult } from "./scoreboard"
 import type { Team } from "./teams"
 
-const MEDALS = ["🥇", "🥈", "🥉"]
 const MAX_QUOTE = 280
 const MAX_SECTION = 2900 // Slack caps section text at 3000 chars
 
@@ -35,7 +34,7 @@ export function buildSlackPayload(push: PushSummary, team: Team, score: RecordRe
   }
 
   const lines = [...push.contributors.values()].map((c) => {
-    const line = pick(TEMPLATES)({ who: escape(c.name), commits: c.commits, team: team.name, quote: quoteOf(c.messages) })
+    const line = contributorLine(escape(c.name), c.commits, quoteOf(c.messages))
     const badges = badgesFor(c, push).map((b) => `${b.emoji} _${b.label}_`)
     return badges.length ? `${line}  ${badges.join("  ")}` : line
   })
@@ -52,12 +51,9 @@ export function buildSlackPayload(push: PushSummary, team: Team, score: RecordRe
     blocks.push({ type: "section", text: { type: "mrkdwn", text: `*${bonus.caption}*\n>${escape(bonus.text).replace(/\n/g, "\n>")}` } })
   }
 
-  const standings = score.standings
-    .map(([name, s], i) => `${MEDALS[i] ?? "▫️"} ${name} ${s.commits}`)
-    .join("   ")
-  const context: string[] = [`🏆 *Standings:* ${standings}`]
-  if (push.compareUrl) context.push(`<${push.compareUrl}|view the diff>`)
-  blocks.push({ type: "context", elements: [{ type: "mrkdwn", text: context.join("  ·  ") }] })
+  if (push.compareUrl) {
+    blocks.push({ type: "context", elements: [{ type: "mrkdwn", text: `<${push.compareUrl}|view the diff>` }] })
+  }
 
   // `text` is the notification / fallback text.
   return { text: `${teamLabel} pushed ${plural(push.totalCommits, "commit")} to ${push.repo}`, blocks }

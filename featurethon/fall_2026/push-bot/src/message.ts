@@ -18,6 +18,11 @@ function truncate(text: string, max: number): string {
   return text.length <= max ? text : text.slice(0, max - 1) + "…"
 }
 
+function joinNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "Someone"
+  return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`
+}
+
 function quoteOf(messages: string[]): string {
   const lines = messages.map((m) => m.split("\n")[0]!.trim()).filter(Boolean)
   return `"${escape(truncate(lines.join(" / ") || "(no commit message, just vibes)", MAX_QUOTE))}"`
@@ -26,15 +31,17 @@ function quoteOf(messages: string[]): string {
 export function buildSlackPayload(push: PushSummary, team: Team, score: RecordResult, bonus: Bonus) {
   const blocks: any[] = []
   const teamLabel = `${team.emoji} ${team.name}`
+  const who = joinNames([...push.contributors.values()].map((c) => c.name))
 
-  blocks.push({ type: "header", text: { type: "plain_text", text: `${teamLabel} pushed ${plural(push.totalCommits, "commit")}`, emoji: true } })
+  // Slack caps header text at 150 chars.
+  blocks.push({ type: "header", text: { type: "plain_text", text: truncate(`${who} pushed to ${teamLabel}`, 150), emoji: true } })
 
   if (score.firstBlood) {
     blocks.push({ type: "section", text: { type: "mrkdwn", text: pick(FIRST_BLOOD) } })
   }
 
   const lines = [...push.contributors.values()].map((c) => {
-    const line = contributorLine(escape(c.name), c.commits, quoteOf(c.messages))
+    const line = contributorLine(escape(c.name), c.commits, quoteOf(c.messages), team.name)
     const badges = badgesFor(c, push).map((b) => `${b.emoji} _${b.label}_`)
     return badges.length ? `${line}  ${badges.join("  ")}` : line
   })
@@ -56,5 +63,5 @@ export function buildSlackPayload(push: PushSummary, team: Team, score: RecordRe
   }
 
   // `text` is the notification / fallback text.
-  return { text: `${teamLabel} pushed ${plural(push.totalCommits, "commit")} to ${push.repo}`, blocks }
+  return { text: `${who} pushed ${plural(push.totalCommits, "commit")} to ${teamLabel} (${push.repo})`, blocks }
 }

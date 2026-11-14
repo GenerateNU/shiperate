@@ -56,13 +56,6 @@ export const DESCRIPTORS = [
   "heard the call of the void and",
 ] as const
 
-export const REACTIONS = [
-  "mystified", "bamboozled", "flabbergasted", "bewildered", "gobsmacked",
-  "astounded", "spooked", "befuddled", "discombobulated", "thunderstruck",
-  "emotionally compromised", "lowkey concerned", "spiritually moved",
-  "weeping openly", "considering a career change", "ordering celebratory pie",
-] as const
-
 export const VERBS_FOR_COMMITS = [
   "shipped", "unleashed", "yeeted", "harvested", "conjured", "smuggled in",
   "dropped", "lovingly hand-crafted", "slammed down", "deployed",
@@ -77,11 +70,11 @@ export type LineParts = {
 }
 
 export const TEMPLATES: ((p: LineParts) => string)[] = [
-  (p) => `*${pick(TITLES)} ${p.who}* ${pick(DESCRIPTORS)} ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}: ${p.quote}. Team ${p.team} is ${pick(REACTIONS)}.`,
-  (p) => `Breaking news from the ${p.team} camp: *${p.who}* (${pick(TITLES)}) just ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}. Witnesses report: ${p.quote}. Everyone is ${pick(REACTIONS)}.`,
-  (p) => `📜 _And lo, *${p.who}* ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")} unto ${p.team}, proclaiming_ ${p.quote}. _The people were ${pick(REACTIONS)}._`,
-  (p) => `🎙️ Sources close to *${p.who}* confirm they ${pick(DESCRIPTORS)} ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}. Statement: ${p.quote}. ${p.team} declined to comment because they are ${pick(REACTIONS)}.`,
-  (p) => `🍂 Fall forecast for ${p.team}: ${plural(p.commits, "commit")} incoming from *${p.who}*, with a high chance of ${p.quote}. Conditions: ${pick(REACTIONS)}.`,
+  (p) => `*${pick(TITLES)} ${p.who}* ${pick(DESCRIPTORS)} ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}: ${p.quote}.`,
+  (p) => `Breaking news from the ${p.team} camp: *${p.who}* (${pick(TITLES)}) just ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}. Witnesses report: ${p.quote}.`,
+  (p) => `📜 _And lo, *${p.who}* ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")} unto ${p.team}, proclaiming_ ${p.quote}.`,
+  (p) => `🎙️ Sources close to *${p.who}* confirm they ${pick(DESCRIPTORS)} ${pick(VERBS_FOR_COMMITS)} ${plural(p.commits, "commit")}. Statement: ${p.quote}.`,
+  (p) => `🍂 Fall forecast for ${p.team}: ${plural(p.commits, "commit")} incoming from *${p.who}*, with a high chance of ${p.quote}.`,
 ]
 
 export const FIRST_BLOOD = [

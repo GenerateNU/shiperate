@@ -1,0 +1,39 @@
+# Runs the push bot on the shared Generate droplet, next to the project backends.
+# Joins the shared `edge` network so the droplet's Caddy routes PUSH_BOT_DOMAIN
+# here and provisions TLS for it (DNS must already point at the droplet).
+#
+# On the droplet, in /opt/featurethon-push-bot:
+#   docker compose --env-file bot.env up -d --build
+name: featurethon-push-bot
+
+services:
+  bot:
+    build: ./app
+    container_name: featurethon-push-bot
+    restart: unless-stopped
+    env_file:
+      - bot.env
+    environment:
+      SERVER_PORT: "3000"
+      SCOREBOARD_PATH: /home/bun/app/data/scoreboard.json
+    volumes:
+      - scoreboard:/home/bun/app/data
+    networks:
+      - edge
+    labels:
+      caddy: ${PUSH_BOT_DOMAIN:?set PUSH_BOT_DOMAIN in bot.env}
+      caddy.reverse_proxy: "{{upstreams 3000}}"
+    # Docker keeps container logs forever by default; cap them on the shared disk.
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  edge:
+    name: edge
+    external: true
+
+volumes:
+  scoreboard:

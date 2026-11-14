@@ -34,12 +34,11 @@ export function buildSlackPayload(push: PushSummary, team: Team, score: RecordRe
     blocks.push({ type: "section", text: { type: "mrkdwn", text: pick(FIRST_BLOOD) } })
   }
 
-  const lines: string[] = []
-  for (const c of push.contributors.values()) {
+  const lines = [...push.contributors.values()].map((c) => {
     const line = pick(TEMPLATES)({ who: escape(c.name), commits: c.commits, team: team.name, quote: quoteOf(c.messages) })
-    const badges = badgesFor(c, push)
-    lines.push(badges.length ? `${line}\n      ${badges.map((b) => `${b.emoji} _${b.label}_`).join("  ·  ")}` : line)
-  }
+    const badges = badgesFor(c, push).map((b) => `${b.emoji} _${b.label}_`)
+    return badges.length ? `${line}  ${badges.join("  ")}` : line
+  })
   blocks.push({ type: "section", text: { type: "mrkdwn", text: truncate(lines.join("\n\n"), MAX_SECTION) } })
 
   if (score.milestone) {

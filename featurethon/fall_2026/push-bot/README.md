@@ -1,7 +1,7 @@
 # fall_2026 push-bot 🍂
 
 Slack bot that listens for GitHub push webhooks on the `featurethon` branch of the featurethon repos and posts
-to Slack with silly titles, achievement badges, a running team scoreboard, and a random bonus (meme, joke,
+to Slack with rare achievement badges, a running team scoreboard, and a random bonus (meme, joke,
 dad joke, useless fact, advice, dog, or http.cat).
 
 | Repo | Team |
@@ -10,10 +10,14 @@ dad joke, useless fact, advice, dog, or http.cat).
 | `inspirate-consulting` | 💡 Inspirate Consulting |
 | `birdie-and-claire` | 🐦 Birdie & Claire |
 | `tomoji` | 🍅 Tomoji |
+| `website`, `finops`, `apportal` | 🛠️ Infra (one shared score) |
 
 ## Running
 
+Run everything from this directory (from the repo root, `bun run sample` falls through to macOS's `sample` profiler):
+
 ```bash
+cd featurethon/fall_2026/push-bot
 bun install
 bun run dev        # watch mode, DRY_RUN=1 (prints Slack payload instead of posting)
 bun run sample     # in another terminal: send fixtures/push.json to the local bot
@@ -35,9 +39,27 @@ Paste the printed `blocks` into [Block Kit Builder](https://app.slack.com/block-
 
 `GET /api/scoreboard` returns the current standings.
 
+## Deploy
+
+Runs on the shared Generate droplet (`deploy@159.65.222.225`) in `~/featurethon-push-bot`, behind the droplet's
+Caddy at `https://featurethon-push-bot.boutline-preview.generatenu.com`. Secrets live in `~/featurethon-push-bot/bot.env`
+there (`SLACK_WEBHOOK`, `GITHUB_WEBHOOK_SECRET`, `PUSH_BOT_DOMAIN`). The scoreboard persists in the
+`featurethon-push-bot_scoreboard` volume.
+
+To redeploy after a change, from this directory:
+
+```bash
+rsync -a --delete --exclude node_modules --exclude .env --exclude data --exclude docker-compose.yml \
+  ./ deploy@159.65.222.225:featurethon-push-bot/app/
+scp docker-compose.yml deploy@159.65.222.225:featurethon-push-bot/
+ssh deploy@159.65.222.225 'cd ~/featurethon-push-bot && docker compose --env-file bot.env up -d --build'
+```
+
+Logs: `ssh deploy@159.65.222.225 docker logs --tail 100 featurethon-push-bot`
+
 ## Where to add content
 
-- `src/flavor.ts` — titles, descriptors, reactions, message templates, milestone lines
+- `src/flavor.ts` — titles, descriptors, message templates, milestone lines
 - `src/achievements.ts` — badge rules (each is a function: contributor → badge or nothing)
 - `src/content.ts` — bonus content sources and their weights
 - `src/teams.ts` — repo → team mapping
